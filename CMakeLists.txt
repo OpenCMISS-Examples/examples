@@ -19,15 +19,14 @@ if (NOT DEFINED OPENCMISS_INSTALL_DIR AND EXISTS "$ENV{OPENCMISS_INSTALL_DIR}")
 elseif(EXISTS "${INSTALL_GUESS}/opencmiss-config.cmake")
     set(OPENCMISS_INSTALL_DIR "${INSTALL_GUESS}")
 endif()
-if (OPENCMISS_INSTALL_DIR)
-    list(APPEND CMAKE_PREFIX_PATH ${OPENCMISS_INSTALL_DIR})
-endif()
 
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(OpenCMISS-Examples VERSION 1.0 LANGUAGES C)
+include("./OpenCMISS.cmake")
+
+cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
+project(OpenCMISS-Examples VERSION 1.0 LANGUAGES C Fortran)
 include(ExternalProject)
 
-find_package(OpenCMISS CONFIG REQUIRED)
+OC_INIT(1.1 Iron)
 
 if (NOT DEFINED OPENCMISS_BUILD_TYPE)
     set(OPENCMISS_BUILD_TYPE ${CMAKE_BUILD_TYPE})
