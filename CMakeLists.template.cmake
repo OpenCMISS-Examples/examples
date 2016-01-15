@@ -5,55 +5,92 @@
 # The OpenCMISS project website can be found at http://www.opencmiss.org
 #
 # --- Welcome! ---
-# This is the main build file for OpenCMISS examples using the CMake build system
+# This is the template for main build files for OpenCMISS examples using the CMake build system
 #
-# For default builds, all you need to do is set the OPENCMISS_INSTALL_DIR to the <OPENCMISS_ROOT>/install directory.
-# Note that you may also define OPENCMISS_INSTALL_DIR in your environment.
+# For most situations, all you need to do is set the OPENCMISS_INSTALL_DIR to the
+# desired/given OpenCMISS install directory.
+#
+# *Note that you may also define OPENCMISS_INSTALL_DIR in your environment!*
+#
+# For more information see http://www.opencmiss.org/documentation
 
-########################################################################################################################
-################################ DO NOT EDIT THIS PART !!!!!!!!!!! #####################################################
-########################################################################################################################
-# Convenience: The OPENCMISS_INSTALL_DIR may also be defined in the environment.
-if (NOT DEFINED OPENCMISS_INSTALL_DIR AND EXISTS "$ENV{OPENCMISS_INSTALL_DIR}")
-    file(TO_CMAKE_PATH "$ENV{OPENCMISS_INSTALL_DIR}" OPENCMISS_INSTALL_DIR)
-endif()
+############################## Preparation ##############################
 
-# Use the OpenCMISS scripts to also allow choosing a separate toolchain
-# This file is located at the opencmiss installation rather than the local example
-# as it avoids file replication and makes maintenance much easier
-if (TOOLCHAIN)
-    set(_OCTC ${OPENCMISS_INSTALL_DIR}/cmake/OCToolchainCompilers.cmake)
-    if (EXISTS "${_OCTC}")
-        include(${_OCTC})
-    else()
-        message(WARNING "TOOLCHAIN specified but OpenCMISS config script could not be found at ${_OCTC}. Using CMake defaults.")
-    endif()
-    unset(_OCTC)
-endif()
+# Include the OpenCMISS initalisation & macro definition file.
+include("./OpenCMISS.cmake")
 
 # Project setup
-cmake_minimum_required(VERSION 3.2 FATAL_ERROR)
+# -------------
+# Change the project name and minimum required CMake version here if required.
+# 
+# .. note::
+#
+#     The OC_INIT script additionally ensures the CMake version is sufficienty new
+#     for the found OpenCMISS installation
+cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 project(OpenCMISS-Example VERSION 1.0 LANGUAGES Fortran C CXX)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-# One could specify CMAKE_PREFIX_PATH directly, however using OPENCMISS_INSTALL_DIR will be more intuitive, eh?
-list(APPEND CMAKE_PREFIX_PATH ${OPENCMISS_INSTALL_DIR})
-# Look for a matching OpenCMISS!
-find_package(OpenCMISS REQUIRED CONFIG)
 
-########################################################################################################################
-################################ ONLY EDIT BELOW HERE !!!!!!!!!!! ######################################################
-########################################################################################################################
+# Initialise OpenCMISS
+# --------------------
+#
+# The OC_INIT function takes the following arguments:
+#
+# OC_INIT(VERSION [, COMPONENT [, ...]])
+#
+#    VERSION: The minimum OpenCMISS version required for this example
+#    COMPONENT: One or more OpenCMISS components that are required.
+#               Currently available: Iron Zinc
+#
+# This function creates a link target 'opencmiss' that contains references to the requested OpenCMISS components.
+# For Iron, it also adds the necessary MPI information - no further find_package(MPI ..) and setting of extra include
+# paths needed ;-)
+
+OC_INIT(1.1 Iron)
+
+############################## Actual example code ##############################
 
 # Get sources in /src
 file(GLOB SRC src/*.f90 src/*.c ../input/*.f90)
-set(EXAMPLE_TARGET run)
+set(EXAMPLE_BINARY run)
 # Add example executable
-add_executable(${EXAMPLE_TARGET} ${SRC})
-# Link to opencmiss - contains forward refs to all other necessary libs
-target_link_libraries(${EXAMPLE_TARGET} PRIVATE opencmiss)
-# Turn on Fortran preprocessing (#include directives)
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
-if (WIN32)
-    target_compile_definitions(${EXAMPLE_TARGET} PRIVATE NOMPIMOD)
-endif()
-install(TARGETS ${EXAMPLE_TARGET} DESTINATION .)
+add_executable(${EXAMPLE_BINARY} ${SRC})
+
+# Link to opencmiss
+# -----------------
+#
+# This simply uses the opencmiss target created by OC_INIT() above.
+#
+# Alternatively, you can also directly invoke 'find_package(Iron <IRON_VERSION>)' to explicitly
+# require that version etc.
+#
+target_link_libraries(${EXAMPLE_BINARY} PRIVATE opencmiss)
+
+# If required, add any other required link libraries (cellml, petsc ..) here, too.
+# For example, if you needed PetSC functionality, issue
+#
+#     find_package(PETSC <version> REQUIRED)
+#     target_link_libraries(${EXAMPLE_BINARY} PRIVATE petsc)
+
+# This moves the created binary into the source folder so it can be executed there if some resource locations are
+# hard-coded (not recommended, but that's how most current examples work)
+install(TARGETS ${EXAMPLE_BINARY} DESTINATION .)
+
+###################
+# Developer notice!
+###################
+#
+# If you write Fortran code and use MPI, you need to use the following MPI directives:
+#
+# #ifndef NOMPIMOD
+#   USE MPI
+# #endif
+# [...]
+#   IMPLICIT NONE
+# [...]
+# #ifdef NOMPIMOD
+#     #include "mpif.h"
+# #endif
+#
+# Reasoning: In some cases like Windows/MPICH2 there sometimes is no mpi.mod file. In order to yet make
+# the example work the build system adds the definition 'NOMPIMOD', which can be checked and acted to accordingly.
+#
