@@ -24,7 +24,7 @@ if (OPENCMISS_INSTALL_DIR)
 endif()
 
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
-project(OpenCMISS-Examples VERSION 1.0 LANGUAGES C)
+project(OpenCMISS-Examples VERSION 1.0 LANGUAGES Fortran C)
 include(ExternalProject)
 
 find_package(OpenCMISS CONFIG REQUIRED)
