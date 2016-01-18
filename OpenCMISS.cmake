@@ -50,8 +50,9 @@ macro(OC_INIT VERSION)
     # Look for a matching OpenCMISS!
     find_package(OpenCMISS ${VERSION} REQUIRED ${ARGN} CONFIG)
     
-    # On windows, we do not have the mpi.mod file
-    if (WIN32)
+    # On some platforms (windows), we do not have the mpi.mod file or it could not be compatible for inclusion
+    # This variable is set by the FindMPI.cmake module in OPENCMISS_INSTALL_DIR/cmake/OpenCMISSExtraFindModules
+    if (NOT MPI_Fortran_MODULE_COMPATIBLE)
         add_definitions(-DNOMPIMOD)
     endif()
     
