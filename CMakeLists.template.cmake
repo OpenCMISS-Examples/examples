@@ -68,11 +68,14 @@ target_link_libraries(${EXAMPLE_BINARY} PRIVATE opencmiss)
 # If required, add any other required link libraries (cellml, petsc ..) here, too.
 # For example, if you needed PetSC functionality, issue
 #
-#     find_package(PETSC <version> REQUIRED)
+#     find_package(PETSC <PETSC_VERSION> REQUIRED)
 #     target_link_libraries(${EXAMPLE_BINARY} PRIVATE petsc)
+#
+# All the OpenCMISS dependencies provide a target you can link against corresponding to the (lowercase) component name.
 
-# This moves the created binary into the source folder so it can be executed there if some resource locations are
-# hard-coded (not recommended, but that's how most current examples work)
+# Install the binary to the root of the installation directory
+#
+# Copy any extra files required for execution there, too!
 install(TARGETS ${EXAMPLE_BINARY} DESTINATION .)
 
 ###################
