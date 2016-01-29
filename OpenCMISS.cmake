@@ -68,7 +68,11 @@ macro(OC_INIT VERSION COMPONENT)
     endif()
     
     # Turn on Fortran preprocessing (#include directives)
-    set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
+    if (MSVC)
+        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} /fpp")
+    else()
+        set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} -cpp")
+    endif()
     
     # Put to source directory unless specified differently
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
